@@ -1,5 +1,10 @@
 #include "json_wrapper.h"
 
+#if defined(WIN32)
+#define StrDup _strdup
+#else
+#define StrDup strdup
+#endif
 
 JsonWrapper::JsonWrapper() {
 }
@@ -26,7 +31,7 @@ bool JsonWrapper::Get(const char* key, int& value) {
 
 bool JsonWrapper::GetEx(const char* key, int& value, char septor/* = '.'*/) {
 	bool find = false;
-	char* pkey = _strdup(key);
+	char* pkey = StrDup(key);
 	rpj::Value& v = GetValueEx(pkey, find, septor);
 	free(pkey);
 	if (find && v.IsInt()) {
@@ -48,7 +53,7 @@ bool JsonWrapper::Get(const char* key, double& value) {
 
 bool JsonWrapper::GetEx(const char* key, double& value, char septor/* = '.'*/) {
 	bool find = false;
-	char* pkey = _strdup(key);
+	char* pkey = StrDup(key);
 	rpj::Value& v = GetValueEx(pkey, find, septor);
 	free(pkey);
 	if (find && v.IsDouble()) {
@@ -70,7 +75,7 @@ bool JsonWrapper::Get(const char* key, std::string& value) {
 
 bool JsonWrapper::GetEx(const char* key, std::string& value, char septor/* = '.'*/) {
 	bool find = false;
-	char* pkey = _strdup(key);
+	char* pkey = StrDup(key);
 	rpj::Value& v = GetValueEx(pkey, find, septor);
 	free(pkey);
 	if (find && v.IsString()) {
@@ -97,7 +102,7 @@ bool JsonWrapper::Get(const char* key, std::set<int>& value) {
 
 bool JsonWrapper::GetEx(const char* key, std::set<int>& value, char septor/* = '.'*/) {
 	bool find = false;
-	char* pkey = _strdup(key);
+	char* pkey = StrDup(key);
 	rpj::Value& v = GetValueEx(pkey, find, septor);
 	free(pkey);
 	if (find && v.IsArray()) {
@@ -129,7 +134,7 @@ bool JsonWrapper::Get(const char* key, std::set<double>& value) {
 
 bool JsonWrapper::GetEx(const char* key, std::set<double>& value, char septor/* = '.'*/) {
 	bool find = false;
-	char* pkey = _strdup(key);
+	char* pkey = StrDup(key);
 	rpj::Value& v = GetValueEx(pkey, find, septor);
 	free(pkey);
 	if (find && v.IsArray()) {
@@ -161,7 +166,7 @@ bool JsonWrapper::Get(const char* key, std::set<std::string>& value) {
 
 bool JsonWrapper::GetEx(const char* key, std::set<std::string>& value, char septor/* = '.'*/) {
 	bool find = false;
-	char* pkey = _strdup(key);
+	char* pkey = StrDup(key);
 	rpj::Value& v = GetValueEx(pkey, find, septor);
 	free(pkey);
 	if (find && v.IsArray()) {
@@ -193,7 +198,7 @@ bool JsonWrapper::Get(const char* key, std::vector<int>& value) {
 
 bool JsonWrapper::GetEx(const char* key, std::vector<int>& value, char septor/* = '.'*/) {
 	bool find = false;
-	char* pkey = _strdup(key);
+	char* pkey = StrDup(key);
 	rpj::Value& v = GetValueEx(pkey, find, septor);
 	free(pkey);
 	if (find && v.IsArray()) {
@@ -225,7 +230,7 @@ bool JsonWrapper::Get(const char* key, std::vector<double>& value) {
 
 bool JsonWrapper::GetEx(const char* key, std::vector<double>& value, char septor/* = '.'*/) {
 	bool find = false;
-	char* pkey = _strdup(key);
+	char* pkey = StrDup(key);
 	rpj::Value& v = GetValueEx(pkey, find, septor);
 	free(pkey);
 	if (find && v.IsArray()) {
@@ -257,7 +262,7 @@ bool JsonWrapper::Get(const char* key, std::vector<std::string>& value) {
 
 bool JsonWrapper::GetEx(const char* key, std::vector<std::string>& value, char septor/* = '.'*/) {
 	bool find = false;
-	char* pkey = _strdup(key);
+	char* pkey = StrDup(key);
 	rpj::Value& v = GetValueEx(pkey, find, septor);
 	free(pkey);
 	if (find && v.IsArray()) {
