@@ -15,7 +15,7 @@
   },
   'targets': [
     {
-      'target_name': 'xtcp',
+      'target_name': 'xctp',
       'type': 'executable',
       'msvs_guid': 'F2D44926-89EC-49B3-BF10-E606EC4420FA',
       'dependencies': [
