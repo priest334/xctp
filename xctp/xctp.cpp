@@ -13,6 +13,26 @@
 using std::string;
 using std::cin;
 
+#if !defined(OS_WIN)
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#endif
+
+void Daemonize() {
+#if !defined(OS_WIN)
+	int pid = fork();
+	if (pid != 0) exit(0);
+
+	setsid();
+	int fd = open("/dev/null", O_RDWR, 0);
+	dup2(fd, 0);
+	dup2(fd, 1);
+	if (fd>2) close(fd);
+#endif
+}
 
 int main(int argc, char* argv[]) {
 	string config_file = "./xctp.conf";
@@ -27,6 +47,8 @@ int main(int argc, char* argv[]) {
 		std::cerr << boost::diagnostic_information(e) << std::endl;
 		return 0;
 	}
+
+	Daemonize();
 
 	Mapper_CThostFtdcDepthMarketDataField::Load();
 
