@@ -11,13 +11,34 @@
       '-lthostmduserapi',
     ]
   },
-  'copies': [
-    {
-      'destination': '<(PRODUCT_DIR)/third_party/ctp',
-      'files': [
-        'libthostmduserapi.so',
-        'libthosttraderapi.so',
+  'conditions':[
+    ['OS=="win"',{
+      'copies': [
+        {
+          'destination': '<(PRODUCT_DIR)',
+          'files': [
+            'thostmduserapi.dll',
+            'thosttraderapi.dll',
+          ],
+        }
+      ]
+    }],
+    ['OS!="win"',{
+      'variables': {
+        'shared_lib_dir': '<(PRODUCT_DIR)/third_party/ctp',
+      },
+      'ldflags': [
+        '-Wl,-rpath=<(shared_lib_dir)'
       ],
-    }
-  ]
+      'copies': [
+        {
+          'destination': '<(shared_lib_dir)',
+          'files': [
+            'libthostmduserapi.so',
+            'libthosttraderapi.so',
+          ],
+        }
+      ]
+    }],
+  ],
 }
