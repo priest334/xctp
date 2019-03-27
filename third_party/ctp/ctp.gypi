@@ -11,4 +11,13 @@
       '-lthostmduserapi',
     ]
   },
+  'copies': [
+    {
+      'destination': '<(PRODUCT_DIR)/third_party/ctp',
+      'files': [
+        'libthostmduserapi.so',
+        'libthosttraderapi.so',
+      ],
+    }
+  ]
 }
