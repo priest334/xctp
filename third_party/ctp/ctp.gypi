@@ -28,7 +28,7 @@
         'shared_lib_dir': '<(PRODUCT_DIR)/third_party/ctp',
       },
       'ldflags': [
-        '-Wl,-rpath=<(shared_lib_dir)'
+        '-Wl,-rpath=./third_party/ctp'
       ],
       'copies': [
         {
