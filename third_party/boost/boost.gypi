@@ -20,6 +20,12 @@
       'link_settings': {
         'libraries': [
           #'-lboost',
+          '-pthread',
+          '-lboost_chrono',
+          '-lboost_context',
+          '-lboost_progam_options',
+          '-lboost_thread',
+          '-lboost_timer',
         ],
       },
     }],
