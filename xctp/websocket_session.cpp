@@ -6,8 +6,8 @@ WebSocketSession::WebSocketSession(WebSocketServerPtr server, tcp::socket socket
 	: server_(server),
 	websocket_(std::move(socket)),
 	is_ready_(false),
-	timer_for_ready_state_(socket.get_executor().context()),
-	timer_for_keepalive_(socket.get_executor().context()),
+	timer_for_ready_state_(socket.get_io_context()),
+	timer_for_keepalive_(socket.get_io_context()),
 	ready_timeout_(5),
 	keepalive_interval_(60){
 }
@@ -47,25 +47,24 @@ void WebSocketSession::Write(const std::string& message) {
 	//		DoWrite();
 	//	}
 	//});
-	boost::asio::post(websocket_.get_executor(), boost::bind(&WebSocketSession::WriteAsync, this, message));
+	if (websocket_.is_open()) {
+		boost::asio::post(websocket_.get_executor(), boost::bind(&WebSocketSession::WriteAsync, this, message));
+	}
 }
 
 
 void WebSocketSession::Close() {
+	if (!websocket_.is_open()) {
+		server_->OnClose(GetPtr(), boost::system::error_code());
+		return;
+	}
 	boost::asio::post(websocket_.get_executor(), [this]() {
-		if (websocket_.is_open()) {
-			websocket_.async_close(boost::beast::websocket::close_reason("force close"), [this](const boost::system::error_code& ec) {
-				if (!ec) {
-					server_->OnClose(GetPtr(), boost::system::error_code());
-				}
-				else {
-					server_->OnError(GetPtr(), ec);
-				}
-			});
-		}
-		else {
+		websocket_.async_close(boost::beast::websocket::close_reason("force close"), [this](const boost::system::error_code& ec) {
+			if (ec) {
+				server_->OnError(GetPtr(), ec);
+			}
 			server_->OnClose(GetPtr(), boost::system::error_code());
-		}
+		});
 	});
 }
 
@@ -139,7 +138,8 @@ void WebSocketSession::DoRead() {
 			Close();
 			return;
 		}
-		server_->OnRead(GetPtr(), std::move(beast::buffers_to_string(input_buffer_.data())));
+		std::string message = beast::buffers_to_string(input_buffer_.data());
+		server_->OnRead(GetPtr(), message);
 		input_buffer_.consume(input_buffer_.size());
 		DoRead();
 	});
