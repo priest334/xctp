@@ -6,8 +6,8 @@ WebSocketSession::WebSocketSession(WebSocketServerPtr server, tcp::socket socket
 	: server_(server),
 	websocket_(std::move(socket)),
 	is_ready_(false),
-	timer_for_ready_state_(socket.get_io_context()),
-	timer_for_keepalive_(socket.get_io_context()),
+	timer_for_ready_state_(socket.get_executor().context()),
+	timer_for_keepalive_(socket.get_executor().context()),
 	ready_timeout_(5),
 	keepalive_interval_(60){
 }
@@ -39,27 +39,34 @@ void WebSocketSession::Start(size_t ready_timeout/* = 5*/, size_t keepalive_inte
 
 
 void WebSocketSession::Write(const std::string& message) {
-	size_t remain_size = output_buffer_.size();
-	size_t size = boost::asio::buffer_copy(output_buffer_.prepare(message.length()), boost::asio::buffer(message));
-	output_buffer_.commit(size);
-	if (remain_size == 0) {
-		DoWrite();
-	}
+	//boost::asio::post(websocket_.get_executor(), [&]() {
+	//	size_t remain_size = output_buffer_.size();
+	//	size_t size = boost::asio::buffer_copy(output_buffer_.prepare(message.length()), boost::asio::buffer(message));
+	//	output_buffer_.commit(size);
+	//	if (remain_size == 0) {
+	//		DoWrite();
+	//	}
+	//});
+	boost::asio::post(websocket_.get_executor(), boost::bind(&WebSocketSession::WriteAsync, this, message));
 }
 
 
 void WebSocketSession::Close() {
-	if (websocket_.is_open()) {
-		websocket_.async_close(boost::beast::websocket::close_reason("force close"), [this](const boost::system::error_code& ec) {
-			if (!ec) {
-				server_->OnClose(GetPtr(), boost::system::error_code());
-			} else {
-				server_->OnError(GetPtr(), ec);
-			}
-		});
-	} else {
-		server_->OnClose(GetPtr(), boost::system::error_code());
-	}
+	boost::asio::post(websocket_.get_executor(), [this]() {
+		if (websocket_.is_open()) {
+			websocket_.async_close(boost::beast::websocket::close_reason("force close"), [this](const boost::system::error_code& ec) {
+				if (!ec) {
+					server_->OnClose(GetPtr(), boost::system::error_code());
+				}
+				else {
+					server_->OnError(GetPtr(), ec);
+				}
+			});
+		}
+		else {
+			server_->OnClose(GetPtr(), boost::system::error_code());
+		}
+	});
 }
 
 
@@ -113,6 +120,7 @@ void WebSocketSession::DoAccept() {
 	websocket_.async_accept([this](const boost::system::error_code& ec) {
 		if (ec) {
 			server_->OnError(GetPtr(), ec);
+			Close();
 			return;
 		}
 		server_->OnNewSession(GetPtr());
@@ -128,9 +136,7 @@ void WebSocketSession::DoRead() {
 	websocket_.async_read(input_buffer_, [this](const boost::system::error_code& ec, size_t length) {
 		if (ec) {
 			server_->OnError(GetPtr(), ec);
-			if (websocket_.is_open()) {
-				Close();
-			}
+			Close();
 			return;
 		}
 		server_->OnRead(GetPtr(), std::move(beast::buffers_to_string(input_buffer_.data())));
@@ -147,9 +153,7 @@ void WebSocketSession::DoWrite() {
 	websocket_.async_write(output_buffer_.data(), [this](const boost::system::error_code& ec, size_t length) {
 		if (ec) {
 			server_->OnError(GetPtr(), ec);
-			if (websocket_.is_open()) {
-				Close();
-			}
+			Close();
 			return;
 		}
 		output_buffer_.consume(length);
@@ -160,5 +164,14 @@ void WebSocketSession::DoWrite() {
 	});
 }
 
+
+void WebSocketSession::WriteAsync(std::string message) {
+	size_t remain_size = output_buffer_.size();
+	size_t size = boost::asio::buffer_copy(output_buffer_.prepare(message.length()), boost::asio::buffer(message));
+	output_buffer_.commit(size);
+	if (remain_size == 0) {
+		DoWrite();
+	}
+}
 
 

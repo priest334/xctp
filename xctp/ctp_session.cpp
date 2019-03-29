@@ -45,7 +45,10 @@ void CtpSession::Subscribe(const std::string& name, const std::string& insid) {
 	}
 	mutex_.unlock();
 	if (already_subscribed) {
-		std::string data = md_history_.Get(insid);
+		std::string data;
+		md_history_mutex_.lock();
+		data = md_history_.Get(insid);
+		md_history_mutex_.unlock();
 		if (!data.empty()) {
 			md_user_session_manager->Send(name, data);
 			return;
@@ -89,7 +92,9 @@ void CtpSession::UnSubscribe(const std::string& name, const std::set<std::string
 
 
 void CtpSession::PublishMarketData(const std::string& insid, const std::string& data) {
+	md_history_mutex_.lock();
 	md_history_.Save(insid, data);
+	md_history_mutex_.unlock();
 	std::set<std::string> user_list;
 	mutex_.lock();
 	auto iter = sub_ins_users_.find(insid);

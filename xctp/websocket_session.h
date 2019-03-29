@@ -39,6 +39,7 @@ private:
 	void DoAccept();
 	void DoRead();
 	void DoWrite();
+	void WriteAsync(std::string message);
 
 	WebSocketServerPtr server_;
 	beast::websocket::stream<tcp::socket> websocket_;

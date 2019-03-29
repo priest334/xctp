@@ -2,6 +2,7 @@
 
 #include <set>
 #include <boost/shared_ptr.hpp>
+#include <boost/thread.hpp>
 #include "websocket_session.h"
 
 class  WsSessionManager {
@@ -14,6 +15,7 @@ public:
 	void StopAll();
 private:
 	std::set<WebSocketSessionPtr> sessions_;
+	boost::mutex sessions_mutex_;
 };
 
 

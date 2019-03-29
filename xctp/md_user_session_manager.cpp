@@ -2,6 +2,7 @@
 #include "json_wrapper.h"
 #include "switch_wrapper.h"
 #include "ctp_session.h"
+#include "settings.h"
 
 MdUserSessionManagerPtr md_user_session_manager;
 
@@ -15,37 +16,45 @@ MdUserSessionManager::~MdUserSessionManager() {
 
 void MdUserSessionManager::Attach(const std::string& name, WebSocketSessionPtr session) {
 	session->SetName(name);
+	named_sessions_mutex_.lock();
 	auto iter = named_sessions_.find(name);
 	if (iter != named_sessions_.end()) {
 		named_sessions_.erase(iter);
 	}
 	named_sessions_.emplace(name, session);
+	named_sessions_mutex_.unlock();
 }
 
 
 WebSocketSessionPtr MdUserSessionManager::Get(const std::string& name) {
 	WebSocketSessionPtr session;
+	named_sessions_mutex_.lock();
 	auto iter = named_sessions_.find(name);
 	if (iter != named_sessions_.end()) {
 		session = iter->second;
 	}
+	named_sessions_mutex_.unlock();
 	return session;
 }
 
 
 WebSocketSessionPtr MdUserSessionManager::Remove(const std::string& name) {
 	WebSocketSessionPtr session;
+	named_sessions_mutex_.lock();
 	auto iter = named_sessions_.find(name);
 	if (iter != named_sessions_.end()) {
 		session = iter->second;
 		named_sessions_.erase(iter);
 	}
+	named_sessions_mutex_.unlock();
 	return session;
 }
 
 
 void MdUserSessionManager::Clear() {
+	named_sessions_mutex_.lock();
 	named_sessions_.clear();
+	named_sessions_mutex_.unlock();
 }
 
 
@@ -80,13 +89,17 @@ void MdUserSessionManager::OnMessage(WebSocketSessionPtr session, const std::str
 		.Case("subscribe", [&]() {
 		std::set<std::string> insid_list;
 		jw.Get("data", insid_list);
+		sub_ins_list_mutex_.lock();
 		sub_ins_list_.insert(insid_list.begin(), insid_list.end());
+		sub_ins_list_mutex_.unlock();
 		ctp_session->Subscribe(session->Name(), insid_list);
 	})
 		.Case("unsubscribe", [&]() {
 		std::set<std::string> insid_list;
 		jw.Get("data", insid_list);
+		sub_ins_list_mutex_.lock();
 		sub_ins_list_.erase(insid_list.begin(), insid_list.end());
+		sub_ins_list_mutex_.unlock();
 		ctp_session->UnSubscribe(session->Name(), insid_list);
 	})
 		.Case("ping", [&]() {
@@ -109,14 +122,18 @@ void MdUserSessionManager::OnError(WebSocketSessionPtr session, const std::strin
 
 
 void MdUserSessionManager::OnClose(WebSocketSessionPtr session) {
+	std::set<std::string> ins_list;
+	sub_ins_list_mutex_.lock();
+	ins_list.insert(sub_ins_list_.begin(), sub_ins_list_.end());
+	sub_ins_list_mutex_.unlock();
 	Remove(session->Name());
-	ctp_session->UnSubscribe(session->Name(), sub_ins_list_);
+	ctp_session->UnSubscribe(session->Name(), ins_list);
 }
 
 
 void MdUserSessionManager::Send(const std::string& name, const std::string& data) {
 	WebSocketSessionPtr session = Get(name);
-	session->Write(data);
+	session->Write(data+settings->protocol.crlf_);
 }
 
 

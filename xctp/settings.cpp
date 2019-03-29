@@ -17,6 +17,8 @@ Settings::Settings() {
 	ctp.broker_id_ = "";
 	ctp.user_id_ = "";
 	ctp.user_password_ = "";
+
+	protocol.crlf_ = "\n\n";
 }
 
 Settings::~Settings() {
@@ -34,6 +36,8 @@ void Settings::LoadFromBuffer(const string& buffer) {
 		jw.GetEx("ctp.broker-id", ctp.broker_id_);
 		jw.GetEx("ctp.user-id", ctp.user_id_);
 		jw.GetEx("ctp.user-password", ctp.user_password_);
+
+		jw.GetEx("protocol.crlf", protocol.crlf_);
 	}
 }
 

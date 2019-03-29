@@ -3,6 +3,8 @@
 #include <string>
 #include <map>
 #include <set>
+#include <boost/shared_ptr.hpp>
+#include <boost/thread.hpp>
 #include "websocket_session.h"
 
 
@@ -25,6 +27,8 @@ public:
 private:
 	std::map<std::string, WebSocketSessionPtr> named_sessions_;
 	std::set<std::string> sub_ins_list_;
+	boost::mutex named_sessions_mutex_;
+	boost::mutex sub_ins_list_mutex_;
 };
 
 typedef boost::shared_ptr<MdUserSessionManager> MdUserSessionManagerPtr;

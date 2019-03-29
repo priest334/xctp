@@ -30,6 +30,7 @@ private:
 	MdConnectorPtr md_connector_;
 	boost::shared_ptr<boost::thread> md_thread_;
 	MdHistory md_history_;
+	boost::shared_mutex md_history_mutex_;
 };
 
 

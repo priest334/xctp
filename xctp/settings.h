@@ -31,6 +31,10 @@ public:
 	struct {
 		string url_;
 	} auth;
+
+	struct {
+		string crlf_;
+	}protocol;
 };
 
 
