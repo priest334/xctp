@@ -19,6 +19,30 @@ bool JsonWrapper::Parse(const char* str) {
 	return !doc_.HasParseError();
 }
 
+
+bool JsonWrapper::Get(const char* key, bool& value) {
+	bool find = false;
+	rpj::Value& v = GetValue(key, find);
+	if (find && v.IsBool()) {
+		value = v.GetBool();
+		return true;
+	}
+	return false;
+}
+
+bool JsonWrapper::GetEx(const char* key, bool& value, char septor/* = '.'*/) {
+	bool find = false;
+	char* pkey = StrDup(key);
+	rpj::Value& v = GetValueEx(pkey, find, septor);
+	free(pkey);
+	if (find && v.IsBool()) {
+		value = v.GetBool();
+		return true;
+	}
+	return false;
+}
+
+
 bool JsonWrapper::Get(const char* key, int& value) {
 	bool find = false;
 	rpj::Value& v = GetValue(key, find);

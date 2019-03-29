@@ -39,6 +39,7 @@ int main(int argc, char* argv[]) {
 	boost::program_options::options_description desc("options");
 	desc.add_options()
 		("config-file,f", boost::program_options::value<std::string>(&config_file));
+		
 	boost::program_options::variables_map vm;
 	try {
 		boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
@@ -48,12 +49,14 @@ int main(int argc, char* argv[]) {
 		return 0;
 	}
 
-	Daemonize();
-
-	Mapper_CThostFtdcDepthMarketDataField::Load();
-
 	settings = new Settings();
 	settings->LoadFromFile(config_file);
+
+	if (settings->service.deamon_) {
+		Daemonize();
+	}
+
+	Mapper_CThostFtdcDepthMarketDataField::Load();
 
 	md_user_session_manager = boost::make_shared<MdUserSessionManager>();
 	ctp_session = boost::make_shared<CtpSession>();
@@ -63,9 +66,7 @@ int main(int argc, char* argv[]) {
 	while (true) {
 		string line;
 		cin >> line;
-		if (line == "close") {
-			server->Close(md_user_session_manager->Get("ctp"));
-		} else if (line == "exit") {
+		if (line == "exit") {
 			break;
 		}
 	}

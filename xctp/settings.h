@@ -18,6 +18,7 @@ public:
 		string address_;
 		string port_;
 		int workers_;
+		bool deamon_;
 	} service;
 
 	struct {

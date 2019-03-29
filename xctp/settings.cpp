@@ -11,6 +11,7 @@ Settings::Settings() {
 	service.address_ = "0.0.0.0";
 	service.port_ = "4567";
 	service.workers_ = 5;
+	service.deamon_ = true;
 
 	ctp.cache_path_ = "";
 	ctp.market_front_ = "";
@@ -30,6 +31,7 @@ void Settings::LoadFromBuffer(const string& buffer) {
 		jw.GetEx("service.address", service.address_);
 		jw.GetEx("service.port", service.port_);
 		jw.GetEx("service.workers", service.workers_);
+		jw.GetEx("service.daemon", service.deamon_);
 
 		jw.GetEx("ctp.cache-path", ctp.cache_path_);
 		jw.GetEx("ctp.market-front", ctp.market_front_);

@@ -14,6 +14,8 @@ public:
 
 	bool Parse(const char* str);
 
+	bool Get(const char* key, bool& value);
+	bool GetEx(const char* key, bool& value, char septor = '.');
 	bool Get(const char* key, int& value);
 	bool GetEx(const char* key, int& value, char septor = '.');
 	bool Get(const char* key, double& value);
