@@ -48,7 +48,7 @@ void WebSocketSession::Write(const std::string& message) {
 	//	}
 	//});
 	if (websocket_.is_open()) {
-		boost::asio::post(websocket_.get_executor(), boost::bind(&WebSocketSession::WriteAsync, this, message));
+		boost::asio::post(websocket_.get_executor(), boost::bind(&WebSocketSession::WriteAsync, GetPtr(), message));
 	}
 }
 
