@@ -1,10 +1,11 @@
 #include "io_context_pool.h"
+#include <iostream>
 #include <stdexcept>
 #include <boost/thread/thread.hpp>
 #include <boost/bind.hpp>
 
 
-IOContextPool::IOContextPool(std::size_t size) : index_(0) {
+IOContextPool::IOContextPool(std::size_t size) : index_(0), stop_(false) {
 	if (size == 0) {
 		throw std::runtime_error("io context pool size is 0");
 	}
@@ -20,8 +21,10 @@ void IOContextPool::Run() {
 	std::size_t i;
 	std::vector<boost::shared_ptr<boost::thread> > threads;
 	for (i = 0; i < contexts_.size(); i++) {
+		//boost::shared_ptr<boost::thread> thread(new boost::thread(
+		//	boost::bind(&boost::asio::io_context::run, contexts_[i])));
 		boost::shared_ptr<boost::thread> thread(new boost::thread(
-			boost::bind(&boost::asio::io_context::run, contexts_[i])));
+			boost::bind(&IOContextPool::LoopForever, this, contexts_[i])));
 		threads.push_back(thread);
 	}
 
@@ -30,6 +33,7 @@ void IOContextPool::Run() {
 }
 
 void IOContextPool::Stop() {
+	stop_ = true;
 	for (std::size_t i = 0; i < contexts_.size(); i++)
 		contexts_[i]->stop();
 }
@@ -41,4 +45,15 @@ boost::asio::io_context& IOContextPool::Get() {
 	return context;
 }
 
+
+void IOContextPool::LoopForever(IOContextPtr io_context) {
+	while (!stop_) {
+		try {
+			io_context->run();
+		}
+		catch (std::exception& e) {
+			std::cerr << e.what() << std::endl;
+		}
+	}
+}
 

@@ -21,8 +21,10 @@ public:
 	boost::asio::io_context& Get();
 
 private:
+	void LoopForever(IOContextPtr io_context);
 	std::vector<IOContextPtr> contexts_;
 	std::list<IOWorker> workers_;
 	std::size_t index_;
+	bool stop_;
 };
 
